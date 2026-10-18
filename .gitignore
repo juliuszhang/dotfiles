@@ -1,0 +1,18 @@
+# Local secrets, including their chezmoi source-state names.
+.env
+.env.*
+*.pem
+*.key
+local.zsh
+*.local.zsh
+private_local.zsh
+private_*.local.zsh
+
+# Editor state, backups, and scan reports.
+.DS_Store
+*.bak
+*.log
+*.swp
+*.swo
+*~
+gitleaks-report.*

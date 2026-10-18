@@ -1,0 +1,20 @@
+# 字体与主题（与 Neovim / tmux 的 Catppuccin Mocha 一致）
+font-family = JetBrainsMono Nerd Font
+font-size = 16
+theme = Catppuccin Mocha
+
+# 玻璃效果：macOS 原生 Liquid Glass，需配合背景透明度 < 1
+background-opacity = 0.75
+background-blur = macos-glass-regular
+
+# 窗口
+window-padding-x = 8
+window-padding-y = 6
+macos-titlebar-style = transparent
+
+# Option 键作为 Alt，方便 Neovim / tmux 使用 Meta 组合键
+macos-option-as-alt = true
+
+# 复制即写入剪贴板，允许程序（tmux / Neovim）通过 OSC 52 写剪贴板
+copy-on-select = clipboard
+clipboard-write = allow

@@ -1,0 +1,25 @@
+# Repository documentation and tooling stay in the source directory.
+README.md
+.gitignore
+.gitleaks.toml
+.githooks
+.githooks/**
+examples
+examples/**
+
+# Machine-local secrets and generated files must never be imported/applied.
+.config/zsh/local.zsh
+.config/zsh/*.local.zsh
+**/*.bak
+**/*.log
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+**/.env
+**/.env.*
+
+{{ if ne .chezmoi.os "darwin" }}
+Library
+Library/**
+{{ end }}

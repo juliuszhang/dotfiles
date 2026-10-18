@@ -1,0 +1,11 @@
+title = "Dotfiles secret detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "shell-secret-assignment"
+description = "Literal credentials in shell environment assignments"
+regex = '''(?im)^\s*(?:export\s+)?(?:[a-z_][a-z0-9_]*)?(?:token|secret|password|api_key|apikey)\s*=\s*["']?([a-z0-9_./+~=-]{8,})'''
+secretGroup = 1
+keywords = ["token", "secret", "password", "api_key", "apikey"]
