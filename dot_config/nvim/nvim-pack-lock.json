@@ -47,6 +47,10 @@
       "rev": "6e9d953f0b82bccdb834cfde0e893f3119c22592",
       "src": "https://github.com/mfussenegger/nvim-jdtls"
     },
+    "nvim-lspconfig": {
+      "rev": "45a3a444b710511c39abca3b60bb6e23a21e3de5",
+      "src": "https://github.com/neovim/nvim-lspconfig"
+    },
     "nvim-surround": {
       "rev": "2e93e154de9ff326def6480a4358bfc149d5da2c",
       "src": "https://github.com/kylechui/nvim-surround",

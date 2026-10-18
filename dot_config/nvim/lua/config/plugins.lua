@@ -59,6 +59,8 @@ vim.pack.add({
   { src = "https://github.com/folke/flash.nvim", version = vim.version.range("*") },
   -- Mason：安装和管理语言服务器等外部工具；不会仅凭此行自动安装所有服务器。
   { src = "https://github.com/mason-org/mason.nvim" },
+  -- nvim-lspconfig：提供语言服务器默认配置，由 vim.lsp.config/enable 定制和启用。
+  { src = "https://github.com/neovim/nvim-lspconfig" },
   -- nvim-jdtls：Java 语言服务集成，具体启动逻辑见 config/java.lua。
   { src = "https://github.com/mfussenegger/nvim-jdtls" },
   -- blink.cmp：补全菜单、文档和参数提示，使用 1.x 系列。

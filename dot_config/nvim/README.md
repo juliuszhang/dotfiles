@@ -1,6 +1,7 @@
 # Neovim 配置
 
 个人 Neovim 配置，使用内置 `vim.pack` 管理插件，`nvim-pack-lock.json` 记录插件版本。
+语言服务复用 `nvim-lspconfig` 的默认配置，通过内置 `vim.lsp.config()` 定制、`vim.lsp.enable()` 启用。
 
 ## 环境
 
@@ -16,9 +17,11 @@
 
 将仓库放到 `~/.config/nvim`（已有配置请先备份）。首次启动 Neovim 会安装缺失的插件。
 
-打开 `:Mason`，按需要安装 `jdtls`、`lua-language-server` 和 `typescript-language-server`，
+打开 `:Mason`，按需要安装 `jdtls`、`lua-language-server`、`typescript-language-server` 和 `vue-language-server`，
 以及格式化工具 `stylua`、`prettierd`。
-JS/TS 语言服务器还需要可用的 Node.js 环境。安装完成后重新打开 Neovim。
+JS/TS/Vue 语言服务器还需要可用的 Node.js 环境。Vue 支持需同时安装 TypeScript 和 Vue 两个语言服务器。
+Mason 将可执行文件加入 PATH，配置仅启用命令已可用的服务器；安装完成后重新打开 Neovim。
+即使项目内已有 TypeScript 语言服务器，也需要先通过 Mason 等方式在 PATH 中提供该命令，才能启用 `ts_ls`。缺少 TS 服务时不会单独启用 Vue 服务。
 
 执行 `:TSInstallConfigured` 安装配置使用的语法解析器。
 
@@ -33,12 +36,23 @@ JS/TS 语言服务器还需要可用的 Node.js 环境。安装完成后重新�
 | `lua/config/plugins.lua` | 插件声明 |
 | `lua/config/ui.lua` | 主题、状态栏、标签、文件树 |
 | `lua/config/editing.lua` | 编辑、搜索、跳转快捷键 |
-| `lua/config/lsp.lua` | 内置 LSP、Blink 补全、诊断、语言服务快捷键 |
+| `lua/config/lsp.lua` | LSP 默认配置定制与启用、Blink 补全、诊断、语言服务快捷键 |
 | `lua/config/java.lua` | JDT LS 启动与 Java 配置 |
 | `ftplugin/java.lua` | Java 文件入口 |
 | `lua/config/treesitter.lua` | 语法高亮和解析器安装命令 |
 | `snippets/mermaid.json` | Mermaid 代码片段 |
 | `stylua.toml` | 本配置的 Lua 格式（2 空格缩进） |
+
+## 语言服务
+
+`nvim-lspconfig` 提供服务器默认配置，不负责安装服务器；安装由 Mason 管理。使用 Neovim 内置的新接口，不使用旧的 `require("lspconfig").xxx.setup()`。
+
+- Lua：保留配置目录的项目识别，以及 Neovim 配置专用的 LuaJIT、`vim` 全局变量和运行时库设置。
+- JavaScript/TypeScript：保留原有项目根目录规则，并加载 Vue 的 TypeScript 插件；启动命令和附加代码操作复用上游。上游会优先使用项目内安装的 TypeScript 语言服务器，否则使用 PATH 中的版本。
+- Vue：完整复用上游默认配置，包括模板/样式服务、TS 请求转发和连接重试；脚本支持由 `ts_ls` 配合完成。
+- Java：仍由 `nvim-jdtls` 启动，保留独立的服务 JDK、项目 workspace 和文件监听设置，不额外启用通用的 `jdtls` 配置。Java 文件无需执行 `:lsp enable jdtls` 或不带参数的 `:lsp enable`；手动启用其他服务时使用明确的服务器名称。
+
+用 `:checkhealth vim.lsp` 检查配置状态，或用 `:lua =vim.lsp.get_clients({ bufnr = 0 })` 查看当前文件连接的服务。
 
 ## 常用快捷键
 
@@ -101,5 +115,6 @@ Ghostty 真彩色与焦点事件会传递给 Neovim，保留扩展按键协议�
 - 2026-09-25：同步导航、LSP 项目识别及重复配置清理，补充搜索和 tmux 体验设置。
 - 2026-10-09：删除残留插件 hop.nvim / vim-easymotion，新增 conform.nvim，blink.cmp 改用 Rust 模糊匹配。
 - 2026-10-09：补充 Tree-sitter 缩进/折叠、常用选项、复制高亮，关闭外部插件接口，Java 缩进移入 `ftplugin/java.lua`；tmux RGB 设置改为不写死下标并增加 `xterm-256color`。
+- 2026-10-18：引入 `nvim-lspconfig`，复用语言服务器默认配置和 Vue 请求转发，保留 Lua/TS 项目识别及 Java 集成；补充 Vue 的 TS 依赖检查。
 
 修改前建议先备份 `~/.tmux.conf` 与 `~/.config/nvim/`，恢复时退出 Neovim 后复制回原位并重载 tmux 配置。
