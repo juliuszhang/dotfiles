@@ -1,8 +1,8 @@
 -- 配置入口：正常启动 Neovim 时，从上到下执行本文件。
 -- require("config.xxx") 会加载 lua/config/xxx.lua；同一模块通常只执行一次，随后使用缓存。
--- 阅读顺序建议沿用下方顺序；Java 的额外入口是 ftplugin/java.lua。
+-- 阅读顺序建议沿用下方顺序；Java 服务设置见 config/java.lua，缩进见 ftplugin/java.lua。
 -- 本配置面向 Neovim 0.12+，插件版本由 nvim-pack-lock.json 记录。
--- 补充：snippets/mermaid.json 是 Mermaid 代码片段，JSON 不支持普通注释。
+-- 补充：snippets/mermaid.json 保留原 Mermaid 片段；移除 Blink 后不再自动加载，JSON 不支持普通注释。
 -- 其中 prefix 是触发词，description 是说明，body 是展开内容；${1:默认值} 是占位符，$0 是最终光标位置。
 
 -- ① 基础设置：剪贴板、行号、Leader、缩进、鼠标等；先确定 Leader，再定义其他快捷键。
@@ -17,3 +17,5 @@ require("config.lsp")
 require("config.editing")
 -- ⑥ 语法解析：按文件类型启用 Tree-sitter 高亮、缩进和折叠，提供解析器安装命令。
 require("config.treesitter")
+-- ⑦ IntelliJ Java/Kotlin 服务：启动时注册，使用插件原生补全/参数提示/折叠，并保留自定义按键布局。
+require("config.java").setup()

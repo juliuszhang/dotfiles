@@ -1,97 +1,45 @@
--- Java 语言服务模块：由 ftplugin/java.lua 在打开 Java 文件时调用 setup()。
--- 使用 Mason 安装的 jdtls，通过 nvim-jdtls 为当前项目启动或复用语言服务。
--- 本配置为服务进程选择 JDK 21+；服务运行 JDK 与项目编译目标是不同概念。
-
--- 用表保存模块对外暴露的函数，末尾 return M 供 require() 获取。
+-- IntelliJ LSP 在启动时配置，提前识别 Maven/Gradle 项目；不使用 Java FileType 懒加载。
+-- 服务使用下载包内的 JBR；default_sdk 仅供未指定 JDK 的项目分析使用。
 local M = {}
--- 缓存成功找到的 JDK 路径，避免每次打开 Java 文件都重新运行探测命令。
-local cached_java_home
+local configured = false
 
--- Keep the server JDK independent of the project JDK.
--- 检查候选目录里是否有可运行的 Java，并且版本满足此配置的 21+ 条件。
-local function is_server_jdk(home)
-  -- 空路径或不存在可执行的 bin/java 时直接判定不合适。
-  if not home or home == "" or vim.fn.executable(home .. "/bin/java") ~= 1 then return false end
-  -- 执行 java -version，并最多等待 5000 毫秒取得结果。
-  local result = vim.system({ home .. "/bin/java", "-version" }, { text = true }):wait(5000)
-  -- Java 版本信息可能写到 stderr；合并两个输出流后提取版本号中的主版本。
-  local version = ((result.stderr or "") .. (result.stdout or "")):match('version%s+"(%d+)')
-  -- 要求进程正常退出、成功提取版本号，并且主版本不低于 21。
-  return result.code == 0 and version and tonumber(version) >= 21
-end
+function M.setup()
+  if configured then
+    return
+  end
+  configured = true
 
--- 按优先级寻找服务使用的 JDK，找到第一个合格路径即停止。
-local function find_java_home()
-  -- 有成功缓存时直接复用；未找到的结果为 nil，后续调用仍可重试。
-  if cached_java_home then return cached_java_home end
-  local java_home
-  -- 服务 JDK 优先选择 LTS，不随终端 jdk27 alias 自动切到 27。
-  for _, candidate in ipairs({
-    -- 最高优先级：专门为 Java 语言服务设置的 JDK。
-    vim.env.JDTLS_JAVA_HOME or "",
-    -- 默认优先最新 LTS 25，其次使用仍满足服务要求的 LTS 21。
-    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home",
-    "/usr/local/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home",
-    "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home",
-    "/usr/local/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home",
-    -- 尚未安装 LTS 时，临时使用现有的合格 JDK，保持语言服务可用。
+  local default_sdk
+  for _, home in ipairs({
     vim.env.JAVA_HOME or "",
-    "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home",
-    "/usr/local/opt/openjdk/libexec/openjdk.jdk/Contents/Home",
+    "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home",
+    "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home",
   }) do
-    if is_server_jdk(candidate) then
-      java_home = candidate
+    if home ~= "" and vim.fn.executable(home .. "/bin/java") == 1 then
+      default_sdk = home
       break
     end
   end
-  -- 保存找到的路径供后续 Java buffer 复用。
-  cached_java_home = java_home
-  return java_home
-end
 
--- 模块的公开入口；每个 Java 文件触发时都会执行，但服务可按项目复用。
-function M.setup()
-  -- 定位 Mason 安装的 jdtls 启动器。
-  local jdtls_bin = vim.fn.stdpath("data") .. "/mason/bin/jdtls"
-  -- 未安装时提示 :MasonInstall jdtls 并提前返回，不继续尝试启动。
-  if vim.fn.executable(jdtls_bin) ~= 1 then
-    vim.notify("Install the Java language server with :MasonInstall jdtls, then reopen this file.", vim.log.levels.WARN)
-    return
-  end
-
-  -- 选择仅用于语言服务进程的 JDK。
-  local java_home = find_java_home()
-  -- 没有满足条件的 JDK 时给出提示；可单独设置 JDTLS_JAVA_HOME。
-  if not java_home then
-    vim.notify("jdtls requires JDK 21+. Install the default LTS with brew install openjdk@25, or set JDTLS_JAVA_HOME.", vim.log.levels.ERROR)
-    return
-  end
-
-  -- 从当前文件向上寻找 Maven、Gradle 或 Git 项目标记，确定服务的项目根目录。
-  local root = vim.fs.root(0, { "mvnw", "gradlew", "settings.gradle", "settings.gradle.kts", "pom.xml", "build.gradle", "build.gradle.kts", ".git" })
-    -- 没有项目标记时，退回当前文件所在目录。
-    or vim.fs.dirname(vim.api.nvim_buf_get_name(0))
-  -- 每个项目使用独立的 jdtls 缓存目录：项目目录名 + 根路径哈希前 12 位，减少同名冲突。
-  local workspace = vim.fn.stdpath("cache") .. "/jdtls/" .. vim.fn.fnamemodify(root, ":t") .. "-" .. vim.fn.sha256(root):sub(1, 12)
-  -- Avoid exhausting macOS file descriptors with recursive LSP watchers.
-  -- 获取并合并 Neovim 的基础 LSP 能力与 blink 补全能力。
-  local capabilities = require("blink.cmp").get_lsp_capabilities(nil, true)
-  -- 禁用服务器动态注册文件监听，避免递归监听在 macOS 上耗尽文件描述符。
-  capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = false
-  -- 已有适用的项目服务时连接它，否则启动新进程。
-  require("jdtls").start_or_attach({
-    -- -data 指定 jdtls 的工作数据目录，不是项目源代码目录。
-    cmd = { jdtls_bin, "-data", workspace },
-    -- 只给语言服务子进程设置 JAVA_HOME 和优先 PATH，不修改父终端的项目环境。
-    cmd_env = { JAVA_HOME = java_home, PATH = java_home .. "/bin:" .. vim.env.PATH },
-    -- 用项目根目录划分语言服务的工作范围。
-    root_dir = root,
-    -- 把补全能力和文件监听限制交给语言服务器。
-    capabilities = capabilities,
-    -- 启用 Java 函数签名帮助，供补全插件展示参数提示。
-    settings = { java = { signatureHelp = { enabled = true } } },
+  require("intellij-lsp").setup({
+    default_sdk = default_sdk,
+    -- 不预先接受服务器协议；首次交互启动由用户确认协议、地区及数据共享选项。
+    -- 补全、参数提示、LSP 折叠和文件模板使用插件原生默认能力。
+    -- 保留现有 Leader 布局，避免 <leader>ws 与关闭文件的 <leader>w 冲突。
+    keymaps = false,
+    -- grr 统一使用 Telescope，避免插件在 on_attach 中覆盖自定义映射。
+    references = false,
+    -- 统一的回车映射同时支持原生补全和括号内换行，见 config/editing.lua。
+    enter_accepts_completion = false,
+    -- 保留主题和手动格式化习惯；Java/Kotlin 的 <leader>F 直接调用插件格式化。
+    colorscheme = false,
+    format_on_save = false,
+    single_key_select = false,
+    -- 当前没有 nvim-dap；不注册无法工作的运行/调试按键，Git 继续使用 Fugitive。
+    run = false,
+    debug = false,
+    git = false,
   })
 end
 
--- require("config.java") 得到此表，从而可以调用 .setup()。
 return M

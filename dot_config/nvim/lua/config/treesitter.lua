@@ -46,3 +46,38 @@ vim.api.nvim_create_user_command("TSInstallConfigured", function()
   -- 这里填写解析器名；tsx 用于 TSX，markdown_inline 处理 Markdown 内联语法。
   require("nvim-treesitter").install({ "java", "lua", "javascript", "typescript", "tsx", "json", "mermaid", "markdown", "markdown_inline", "vim", "regex", "bash" })
 end, { desc = "Install parsers used by this configuration" })
+
+-- 折叠按窗口选择来源：IntelliJ 已连接时使用服务范围，否则保留 Tree-sitter。
+-- 上游 on_attach 只设置当时的当前窗口；切换文件/分屏，以及后台连接时需同步其余窗口。
+local function refresh_window_folds()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.bo[buf].buftype == "" then
+      local clients = vim.lsp.get_clients({ bufnr = buf, name = "intellij", method = "textDocument/foldingRange" })
+      if #clients > 0 then
+        if vim.wo[win].foldexpr ~= "v:lua.vim.lsp.foldexpr()" then
+          vim.api.nvim_win_call(win, function()
+            require("intellij-lsp.client").setup_folding(require("intellij-lsp").config)
+          end)
+        end
+      elseif vim.treesitter.highlighter.active[buf] then
+        -- 清除插件留在窗口中的 foldtext，避免切回其他语言时继续调用 LSP。
+        vim.wo[win].foldmethod = "expr"
+        vim.wo[win].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        vim.wo[win].foldtext = vim.api.nvim_get_option_info2("foldtext", {}).default
+      elseif vim.wo[win].foldexpr == "v:lua.vim.lsp.foldexpr()" then
+        -- 没有解析器的普通文本也不能继承上一个 Java 文件的 LSP 折叠。
+        for _, option in ipairs({ "foldmethod", "foldexpr", "foldtext" }) do
+          vim.wo[win][option] = vim.api.nvim_get_option_info2(option, {}).default
+        end
+      end
+    end
+  end
+end
+vim.api.nvim_create_autocmd({ "BufWinEnter", "LspAttach", "LspDetach" }, {
+  group = vim.api.nvim_create_augroup("UserWindowFolds", { clear = true }),
+  callback = function()
+    -- 等插件 on_attach 完成，或客户端真正断开后再校正窗口选项。
+    vim.schedule(refresh_window_folds)
+  end,
+})

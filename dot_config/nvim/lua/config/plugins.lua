@@ -61,12 +61,8 @@ vim.pack.add({
   { src = "https://github.com/mason-org/mason.nvim" },
   -- nvim-lspconfig：提供语言服务器默认配置，由 vim.lsp.config/enable 定制和启用。
   { src = "https://github.com/neovim/nvim-lspconfig" },
-  -- nvim-jdtls：Java 语言服务集成，具体启动逻辑见 config/java.lua。
-  { src = "https://github.com/mfussenegger/nvim-jdtls" },
-  -- blink.cmp：补全菜单、文档和参数提示，使用 1.x 系列。
-  { src = "https://github.com/saghen/blink.cmp", version = vim.version.range("1.x") },
-  -- friendly-snippets：现成的多语言代码片段，供补全系统使用。
-  { src = "https://github.com/rafamadriz/friendly-snippets" },
+  -- IntelliJ LSP：Java 语言服务；启动时加载，才能从构建文件提前导入项目。
+  { src = "https://github.com/JetBrains/intellij-lsp.nvim" },
   -- conform：按文件类型调用外部格式化工具（stylua、prettierd），没有时回退到语言服务。
   { src = "https://github.com/stevearc/conform.nvim" },
 })

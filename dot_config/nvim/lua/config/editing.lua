@@ -5,7 +5,16 @@
 -- 启用包围符编辑并使用默认设置，例如给文本添加/替换/删除括号或引号。
 require("nvim-surround").setup({})
 -- 启用括号、引号等字符的自动配对。
-require("nvim-autopairs").setup({})
+require("nvim-autopairs").setup({ map_cr = false })
+-- 回车优先确认原生补全；无候选菜单时保留括号内自动换行/缩进。
+-- IntelliJ 的默认回车不调用 autopairs，因此统一在此处理，避免局部映射遮蔽。
+vim.keymap.set("i", "<CR>", function()
+  if vim.fn.pumvisible() ~= 0 then
+    local keys = vim.fn.complete_info({ "selected" }).selected == -1 and "<C-n><C-y>" or "<C-y>"
+    return vim.api.nvim_replace_termcodes(keys, true, false, true)
+  end
+  return require("nvim-autopairs").autopairs_cr()
+end, { expr = true, replace_keycodes = false, desc = "Accept native completion or insert paired newline" })
 -- 启用 Flash 跳转，但关闭其 char 模式，保留 f/F/t/T 的原有字符查找行为。
 require("flash").setup({ modes = { char = { enabled = false } } })
 -- 文件和全文搜索包含隐藏配置文件，仍遵循 .gitignore，并排除 Git 内部数据。
