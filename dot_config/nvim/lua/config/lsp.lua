@@ -8,14 +8,8 @@
 vim.diagnostic.config({
   -- 在行尾显示诊断文字，间隔 2 个空格；存在多个来源时显示来源名。
   virtual_text = { spacing = 2, source = "if_many" },
-  -- 左侧标记栏显示诊断符号。
-  signs = true,
-  -- 给问题代码加下划线。
-  underline = true,
   -- 按严重程度排序诊断。
   severity_sort = true,
-  -- 插入模式中暂缓刷新诊断，减少输入时的干扰。
-  update_in_insert = false,
   -- 诊断浮窗使用圆角边框，并展示诊断来源。
   float = { border = "rounded", source = true },
 })
@@ -186,8 +180,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     map("grr", function()
       require("telescope.builtin").lsp_references()
     end, "Find references")
-    -- Shift+k：查看光标下符号的悬浮文档。
-    map("K", vim.lsp.buf.hover, "Documentation")
+    -- K 悬浮文档由 Neovim 在服务支持 hover 时自动映射。
     -- 空格 r n：按语言服务理解的符号关系重命名。
     map("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
     -- 空格 c a：显示代码操作，例如可用的快速修复。

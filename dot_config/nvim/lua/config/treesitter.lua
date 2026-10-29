@@ -2,8 +2,6 @@
 -- 解析器负责理解语法，highlights 查询负责指定哪些结构使用哪些高亮。
 -- 启动时只注册规则；解析器安装由 :TSInstallConfigured 手动触发。
 
--- 初始化解析器管理插件，使用默认设置。
-require("nvim-treesitter").setup({})
 -- 文件类型确定时，尝试为下面列出的文件类型启用 Tree-sitter。
 vim.api.nvim_create_autocmd("FileType", {
   -- 独立事件组；重新执行配置时替换旧规则。

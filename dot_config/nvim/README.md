@@ -8,7 +8,7 @@
 - Neovim 0.12+、Git。
 - `ripgrep` 用于文件和全文搜索。
 - 本机 JDK 使用 Homebrew 安装，通过 zsh 的 `jdk25` / `jdk27` alias 切换；`jdklts` 切回 JDK 25 LTS。
-- 执行 `brew install openjdk@25` 后，新终端默认使用 JDK 25；安装前临时使用现有 JDK 27。
+- 默认使用 JDK 25；Maven 使用 `JAVA_HOME` 指定的 JDK，`mvn -version` 可检查当前版本。
 - IntelliJ 语言服务自动下载官方服务器包，使用包内 JBR。项目分析优先使用项目指定 JDK；未指定时采用有效的 `JAVA_HOME`，否则尝试 Homebrew JDK 25 / 21。
 - Maven 项目需要可用的 `mvn`（可通过 `brew install maven` 安装）或项目提供的 Maven Wrapper；只有服务器自带 JBR 并不足以完成 Maven 导入。用 `mvn -version` 检查其运行 JDK 与项目要求一致。
 - 使用图标时建议选择 Nerd Font 终端字体。
@@ -41,7 +41,6 @@ Mason 将可执行文件加入 PATH，配置仅启用命令已可用的服务器
 | `lua/config/java.lua` | IntelliJ LSP 原生能力与项目 JDK |
 | `ftplugin/java.lua` | Java 缩进 |
 | `lua/config/treesitter.lua` | 语法高亮和解析器安装命令 |
-| `snippets/mermaid.json` | 保留的 Mermaid 片段文件（不再自动加载） |
 | `stylua.toml` | 本配置的 Lua 格式（2 空格缩进） |
 
 ## 语言服务
@@ -90,7 +89,7 @@ Leader 为 **空格**，以下大写字母需要 Shift。
 语言服务相关快捷键在 LSP 连接当前文件后生效。补全使用 Neovim 原生菜单：Enter 确认候选，Ctrl+n / Ctrl+p 选择，Ctrl+e 取消；LSP 片段中的 Tab / Shift+Tab 跳转占位符。
 Java/Kotlin 由 IntelliJ 自动触发标识符补全和参数提示；Lua/JS/TS/Vue 使用 Neovim 原生自动补全，插入模式 Ctrl+s 查看参数提示。
 移除 Blink 后，不再混合显示路径、buffer 单词和本地 snippets；仍可用原生 Ctrl+x Ctrl+f 补路径、Ctrl+x Ctrl+n 补当前文件单词、Ctrl+x Ctrl+o 手动请求 LSP。
-`friendly-snippets` 已卸载；自定义 `snippets/mermaid.json` 保留在磁盘，不再自动加载。Java/Kotlin 新建空文件使用 IntelliJ 文件模板，这不等同于 Mermaid 片段库。
+`friendly-snippets` 已卸载；不再使用的 Mermaid 片段归档在 chezmoi 仓库的 `examples/neovim/mermaid.json`，不部署到 Neovim 配置目录。Java/Kotlin 新建空文件使用 IntelliJ 文件模板。
 
 搜索优先定位到当前文件的 Git 仓库根目录；无 Git 时使用最近的构建标记目录，否则使用文件所在目录。
 编辑 Neovim 自身配置时固定搜索 `~/.config/nvim`；无文件或特殊窗口则使用当前工作目录。
@@ -101,7 +100,7 @@ Java/Kotlin 由 IntelliJ 自动触发标识符补全和参数提示；Lua/JS/TS/
 命令行和搜索使用底部原生输入栏。`:s` 替换实时预览，复制时短暂高亮复制范围。
 有未保存修改时 `:q` 会阻止退出；先用 `:w` 保存，或用 `:q!` 放弃修改。
 Tree-sitter 负责缩进；折叠优先使用已连接的 IntelliJ 服务，其余使用 Tree-sitter：`zM` 全部折叠、`za` 切换当前、`zR` 全部展开，打开文件时默认展开。
-已关闭 Python/Ruby/Perl/Node 外部插件接口（本配置插件均为 Lua）。
+当前插件不依赖 Python/Ruby/Perl/Node 外部接口，因此关闭对应 provider。
 
 ## tmux 配合
 
@@ -123,6 +122,8 @@ Ghostty 真彩色与焦点事件会传递给 Neovim，保留扩展按键协议�
 终端类型和历史容量对新建窗格生效；Neovim 配置在重新启动编辑器后生效。
 
 ## 更新记录
+
+- 2026-10-29：归档不再加载的 Mermaid 片段，删除重复的多光标映射、空 Tree-sitter 初始化和内置/插件默认设置；K 使用 Neovim 原生悬浮文档映射。
 
 - 2026-09-25：同步导航、LSP 项目识别及重复配置清理，补充搜索和 tmux 体验设置。
 - 2026-10-09：删除残留插件 hop.nvim / vim-easymotion，新增 conform.nvim，blink.cmp 改用 Rust 模糊匹配。

@@ -2,8 +2,6 @@
 -- require("config.xxx") 会加载 lua/config/xxx.lua；同一模块通常只执行一次，随后使用缓存。
 -- 阅读顺序建议沿用下方顺序；Java 服务设置见 config/java.lua，缩进见 ftplugin/java.lua。
 -- 本配置面向 Neovim 0.12+，插件版本由 nvim-pack-lock.json 记录。
--- 补充：snippets/mermaid.json 保留原 Mermaid 片段；移除 Blink 后不再自动加载，JSON 不支持普通注释。
--- 其中 prefix 是触发词，description 是说明，body 是展开内容；${1:默认值} 是占位符，$0 是最终光标位置。
 
 -- ① 基础设置：剪贴板、行号、Leader、缩进、鼠标等；先确定 Leader，再定义其他快捷键。
 require("config.options")

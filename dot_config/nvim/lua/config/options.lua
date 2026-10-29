@@ -7,7 +7,7 @@
 -- 删除也可能覆盖剪贴板；只删除不保存内容可用黑洞寄存器，例如 "_dd。
 vim.opt.clipboard = "unnamedplus"
 
--- 本配置的插件均为 Lua，关闭 Python/Ruby/Perl/Node 外部插件接口，省去启动探测和 checkhealth 警告。
+-- 当前插件不依赖 Python/Ruby/Perl/Node 外部接口，关闭这些 provider 的启动探测。
 vim.g.loaded_python3_provider = 0
 vim.g.loaded_ruby_provider = 0
 vim.g.loaded_perl_provider = 0
@@ -80,7 +80,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- 回到编辑器或切回文件时检查磁盘更新；未保存的 buffer 不自动覆盖。
-vim.opt.autoread = true
+-- autoread 使用 Neovim 默认值 true；这里补充切换 buffer 时的检查。
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
   group = vim.api.nvim_create_augroup("UserChecktime", { clear = true }),
   callback = function(event)

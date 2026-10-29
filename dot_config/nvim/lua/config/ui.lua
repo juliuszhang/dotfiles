@@ -32,8 +32,6 @@ require("lualine").setup({
     theme = "catppuccin-mocha",
     -- 所有分屏共用状态栏，对应 options.lua 中的 laststatus = 3。
     globalstatus = true,
-    -- 允许状态栏组件显示图标。
-    icons_enabled = true,
     -- 同一区域内的组件用竖线分隔。
     component_separators = "|",
     -- 不同区域之间不额外绘制分隔符。
@@ -101,18 +99,12 @@ end
 -- 配置顶部文件标签栏。
 require("bufferline").setup({
   options = {
-    -- 标签对应已打开的文件 buffer；Vim 自身的 tabpage 仍可单独使用。
-    mode = "buffers", -- Editor-style file tabs; Vim tab pages remain available.
     -- 点击标签关闭按钮时使用上面的保护逻辑。
     close_command = close_file_tab,
     -- 右键点击标签也执行同样的关闭逻辑。
     right_mouse_command = close_file_tab,
     -- 在标签上显示内置 LSP 的诊断信息。
     diagnostics = "nvim_lsp",
-    -- 只有一个文件时也显示标签栏。
-    always_show_bufferline = true,
-    -- 显示文件类型图标。
-    show_buffer_icons = true,
     -- 标签间使用细分隔线。
     separator_style = "thin",
     -- 文件树打开时，在其上方预留对应区域并居中显示 Files。
@@ -150,8 +142,6 @@ end, { desc = "Close other file tabs, keep window layout" })
 vim.g.NERDTreeWinSize = 32
 -- 显示以点开头的隐藏文件。
 vim.g.NERDTreeShowHidden = 1
--- 浏览文件树时不自动改变 Neovim 的工作目录。
-vim.g.NERDTreeChDirMode = 0
 -- 空格 e：打开或关闭文件树。
 vim.keymap.set("n", "<leader>e", "<cmd>NERDTreeToggle<cr>", { desc = "Toggle file tree" })
 -- 空格 l：在文件树中定位当前文件（这里是小写字母 L）。

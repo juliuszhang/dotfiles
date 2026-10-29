@@ -4,14 +4,6 @@
 -- 这里只负责加载与少量加载前设置，具体功能在 ui/lsp/editing/treesitter 等模块配置。
 
 -- Native Neovim 0.12 plugin management: :lua vim.pack.update()
--- Multi-cursor: press Ctrl+n repeatedly to select the word/subword under the cursor.
--- 在多光标插件加载前设置其按键；<C-n> 表示 Ctrl+n，可连续选择匹配项。
-vim.g.VM_maps = {
-  -- 普通的查找并选择光标下单词操作。
-  ["Find Under"] = "<C-n>",
-  -- 插件的子词查找操作也使用 Ctrl+n。
-  ["Find Subword Under"] = "<C-n>",
-}
 -- 监听插件变更；仅在 nvim-treesitter 被更新后更新其解析器。
 vim.api.nvim_create_autocmd("PackChanged", {
   -- 使用独立事件组，重新执行此段时先清除旧监听。
@@ -53,7 +45,7 @@ vim.pack.add({
   { src = "https://github.com/kylechui/nvim-surround", version = vim.version.range("4.x") },
   -- nvim-autopairs：输入左括号、引号时自动补齐配对符号。
   { src = "https://github.com/windwp/nvim-autopairs" },
-  -- vim-visual-multi：多光标编辑，Ctrl+n 的映射在本文件开头设置。
+  -- vim-visual-multi：多光标编辑，普通/可视模式 Ctrl+n 使用插件默认映射。
   { src = "https://github.com/mg979/vim-visual-multi" },
   -- Flash：给匹配位置加跳转标签，在 editing.lua 定义搜索和按行跳转。
   { src = "https://github.com/folke/flash.nvim", version = vim.version.range("*") },

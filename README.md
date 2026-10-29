@@ -4,12 +4,14 @@
 
 | 配置 | 应用位置 |
 | --- | --- |
-| Neovim（含插件锁定文件、Lua 模块和 snippets） | `~/.config/nvim/` |
+| Neovim（含插件锁定文件和 Lua 模块） | `~/.config/nvim/` |
 | Zsh | `~/.zshrc`、`~/.zprofile`、`~/.config/zsh/java.zsh` |
 | Starship 提示符 | `~/.config/starship.toml` |
 | Ghostty | `~/Library/Application Support/com.mitchellh.ghostty/config.ghostty` |
 
 Neovim 插件缓存、shell 历史、日志、备份和本机密钥不在管理范围内。Neovim 的快捷键和语言服务安装说明见 [Neovim README](dot_config/nvim/README.md)。
+
+不再加载的 Mermaid 片段保存在 [examples/neovim/mermaid.json](examples/neovim/mermaid.json)，仅归档，不由 chezmoi 部署。
 
 ## 在新的 Mac 上使用
 
@@ -17,7 +19,7 @@ Neovim 插件缓存、shell 历史、日志、备份和本机密钥不在管理�
 
 ```sh
 brew install chezmoi gitleaks gh neovim ripgrep starship fzf eza bat \
-  zsh-autosuggestions zsh-syntax-highlighting openjdk@25
+  zsh-autosuggestions zsh-syntax-highlighting openjdk@25 maven
 brew install --cask ghostty font-jetbrains-mono-nerd-font
 ```
 

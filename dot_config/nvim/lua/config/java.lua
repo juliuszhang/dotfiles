@@ -33,11 +33,9 @@ function M.setup()
     enter_accepts_completion = false,
     -- 保留主题和手动格式化习惯；Java/Kotlin 的 <leader>F 直接调用插件格式化。
     colorscheme = false,
-    format_on_save = false,
     single_key_select = false,
-    -- 当前没有 nvim-dap；不注册无法工作的运行/调试按键，Git 继续使用 Fugitive。
+    -- run=false 同时禁用依赖它的调试功能；当前没有 nvim-dap。Git 继续使用 Fugitive。
     run = false,
-    debug = false,
     git = false,
   })
 end
