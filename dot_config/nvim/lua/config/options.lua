@@ -76,7 +76,9 @@ vim.opt.foldlevel = 99
 -- 复制时短暂高亮被复制的范围，确认复制内容是否正确。
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("UserYankHighlight", { clear = true }),
-  callback = function() vim.hl.on_yank() end,
+  callback = function()
+    vim.hl.on_yank()
+  end,
 })
 
 -- 回到编辑器或切回文件时检查磁盘更新；未保存的 buffer 不自动覆盖。
@@ -84,8 +86,12 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
   group = vim.api.nvim_create_augroup("UserChecktime", { clear = true }),
   callback = function(event)
-    if vim.bo[event.buf].buftype == "" and not vim.bo[event.buf].modified
-      and vim.fn.getcmdwintype() == "" and vim.fn.mode() == "n" then
+    if
+      vim.bo[event.buf].buftype == ""
+      and not vim.bo[event.buf].modified
+      and vim.fn.getcmdwintype() == ""
+      and vim.fn.mode() == "n"
+    then
       vim.cmd("checktime " .. event.buf)
     end
   end,

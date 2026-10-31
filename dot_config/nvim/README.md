@@ -55,7 +55,7 @@ Mason 将可执行文件加入 PATH，配置仅启用命令已可用的服务器
 - 用 `:checkhealth intellij-lsp` 检查服务器与授权，`:IntellijLspOutput` 查看导入日志。服务独占约需 2 GB 可用内存，构建导入时需要更多。
 - Java/Kotlin 使用插件自带的补全、参数提示、LSP 折叠、文件模板和格式化；已移除 Blink、friendly-snippets 及先前的 Blink 适配包装。服务器返回的 snippet 补全仍由 `vim.snippet` 展开。
 - `grr` 统一使用 Telescope 查找引用，关闭 IntelliJ 的默认引用映射；`<leader>F` 直接使用 IntelliJ 格式化。`<leader>o/O` 继续用 Telescope，以保留项目符号/全部符号两种搜索范围。
-- `keymaps=false` 保留自定义 Leader 布局，避免 `<leader>ws` 与 `<leader>w` 的前缀冲突。回车统一在 `editing.lua` 中处理：有菜单时确认候选，无菜单时保留 autopairs 的括号内换行。插件自动补全及参数提示保持开启。
+- `keymaps=false` 保留自定义 Leader 布局，避免 `<leader>ws` 与 `<leader>w` 的前缀冲突。回车统一在 `editing.lua` 中处理：已选中候选时确认，否则照常换行并保留 autopairs 的括号内换行。插件自动补全及参数提示保持开启。
 - Java/Kotlin 服务连接后使用 LSP 折叠，其他语言以及服务不可用时保留 Tree-sitter；Tree-sitter 继续提供语法高亮和缩进。切换文件、分屏或后台连接时按窗口同步折叠来源。
 - Conform 保留用于其他语言的 stylua/prettierd；Telescope 保留文件、全文和符号搜索；Fugitive 保留现有 blame，插件 Git 面板不能等价替代它。Catppuccin 和其他编辑/UI 插件保留。没有 nvim-dap，运行/调试功能仍关闭。
 - `<leader>i` 使用标准 `source.organizeImports` 代码操作；`<leader>o` 过滤 `jar:` / `jrt:` 依赖符号，`<leader>O` 保留全部符号。没有构建文件或 Git 根目录的独立 Java 文件可能无法自动启动此服务。
@@ -86,7 +86,7 @@ Leader 为 **空格**，以下大写字母需要 Shift。
 | `<leader>F` | 格式化当前文件：Lua 用 stylua，JS/TS/JSON/Markdown 用 prettierd，其他回退到语言服务 |
 | `<leader>i` | 整理 Java import |
 
-语言服务相关快捷键在 LSP 连接当前文件后生效。补全使用 Neovim 原生菜单：Enter 确认候选，Ctrl+n / Ctrl+p 选择，Ctrl+e 取消；LSP 片段中的 Tab / Shift+Tab 跳转占位符。
+语言服务相关快捷键在 LSP 连接当前文件后生效。补全使用 Neovim 原生菜单：默认不选中候选，先用 Ctrl+n / Ctrl+p 选择再按 Enter 确认（未选中时 Enter 照常换行），Ctrl+e 取消；LSP 片段中的 Tab / Shift+Tab 跳转占位符。
 Java/Kotlin 由 IntelliJ 自动触发标识符补全和参数提示；Lua/JS/TS/Vue 使用 Neovim 原生自动补全，插入模式 Ctrl+s 查看参数提示。
 移除 Blink 后，不再混合显示路径、buffer 单词和本地 snippets；仍可用原生 Ctrl+x Ctrl+f 补路径、Ctrl+x Ctrl+n 补当前文件单词、Ctrl+x Ctrl+o 手动请求 LSP。
 `friendly-snippets` 已卸载；不再使用的 Mermaid 片段归档在 chezmoi 仓库的 `examples/neovim/mermaid.json`，不部署到 Neovim 配置目录。Java/Kotlin 新建空文件使用 IntelliJ 文件模板。

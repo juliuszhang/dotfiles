@@ -54,22 +54,29 @@ end, { desc = "Next diagnostic" })
 
 -- 初始化外部工具管理器，可用 :Mason 打开界面；此处不自动安装服务器。
 require("mason").setup({})
--- 原生补全菜单：显示单项候选、模糊匹配和文档，确认前不插入候选文字。
-vim.opt.completeopt = { "menu", "menuone", "popup", "fuzzy", "noinsert" }
+-- 原生补全菜单：显示单项候选、模糊匹配和文档；不自动选中候选，确认前不插入候选文字。
+vim.opt.completeopt = { "menu", "menuone", "popup", "fuzzy", "noinsert", "noselect" }
 -- Java/Kotlin 的补全由 IntelliJ 插件管理；其他服务器使用 Neovim 内置补全。
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("UserNativeCompletion", { clear = true }),
   callback = function(event)
     local client = vim.lsp.get_client_by_id(event.data.client_id)
-    if not client or client.name == "intellij" then return end
+    if not client or client.name == "intellij" then
+      return
+    end
     if client:supports_method("textDocument/completion") then
       -- Neovim 支持扩展触发字符；输入标识符时也自动请求补全，保留服务器自己的触发符。
+      -- 动态注册补全的服务器没有静态 completionProvider，此时跳过扩展，只启用补全。
       local provider = client.server_capabilities.completionProvider
-      local triggers = provider.triggerCharacters or {}
-      for char in ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"):gmatch(".") do
-        if not vim.tbl_contains(triggers, char) then triggers[#triggers + 1] = char end
+      if provider then
+        local triggers = provider.triggerCharacters or {}
+        for char in ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_"):gmatch(".") do
+          if not vim.tbl_contains(triggers, char) then
+            triggers[#triggers + 1] = char
+          end
+        end
+        provider.triggerCharacters = triggers
       end
-      provider.triggerCharacters = triggers
       vim.lsp.completion.enable(true, client.id, event.buf, { autotrigger = true })
     end
     -- 其他语言按 Neovim 默认的插入模式 Ctrl+s 查看参数提示。
@@ -104,12 +111,24 @@ vim.lsp.config("lua_ls", {
   -- 服务器初始化时，仅为 Neovim 自身配置项目补充专用 Lua 设置。
   on_init = function(client)
     if vim.fs.normalize(client.root_dir or "") == vim.fs.normalize(vim.fn.stdpath("config")) then
-      -- Neovim 的 Lua 运行环境按 LuaJIT 分析。
-      client.config.settings.Lua.runtime = { version = "LuaJIT" }
+      -- Neovim 的 Lua 运行环境按 LuaJIT 分析；require 按 Neovim 的 lua/ 目录规则严格解析，
+      -- 避免 require("telescope") 被同名文件（如主题的 integrations/telescope.lua）误匹配。
+      client.config.settings.Lua.runtime = {
+        version = "LuaJIT",
+        path = { "?.lua", "?/init.lua", "lua/?.lua", "lua/?/init.lua" },
+        pathStrict = true,
+      }
       -- 声明 vim 是合法全局变量，避免被报告为未定义。
       client.config.settings.Lua.diagnostics = { globals = { "vim" } }
-      -- 把 Neovim 自带运行时加入分析库，供 API 识别和补全使用。
-      client.config.settings.Lua.workspace.library = { vim.env.VIMRUNTIME }
+      -- 把 Neovim 自带运行时、libuv（vim.uv）类型和已加载插件的 lua 目录加入分析库，
+      -- 使 require("telescope") 等插件 API 也有补全、跳转和类型检查。
+      local library = { vim.env.VIMRUNTIME, "${3rd}/luv/library" }
+      for _, plugin in ipairs(vim.pack.get()) do
+        if plugin.active and vim.uv.fs_stat(plugin.path .. "/lua") then
+          library[#library + 1] = plugin.path .. "/lua"
+        end
+      end
+      client.config.settings.Lua.workspace.library = library
       -- 把刚调整的设置通知给已初始化的服务器。
       client:notify("workspace/didChangeConfiguration", { settings = client.config.settings })
     end
@@ -200,8 +219,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
       local opts = {}
       if vim.bo[event.buf].filetype == "java" then
         -- IntelliJ 用 jar:/jrt: URI 返回依赖/JDK 类；jar: 可能被转换成带目录的 buffer 名。
-        opts.file_ignore_patterns =
-          vim.list_extend(vim.deepcopy(require("telescope.config").values.file_ignore_patterns or {}), { "jar:", "jrt:" })
+        opts.file_ignore_patterns = vim.list_extend(
+          vim.deepcopy(require("telescope.config").values.file_ignore_patterns or {}),
+          { "jar:", "jrt:" }
+        )
       end
       require("telescope.builtin").lsp_dynamic_workspace_symbols(opts)
     end, "Search project classes/symbols")

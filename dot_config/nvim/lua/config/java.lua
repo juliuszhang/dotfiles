@@ -13,7 +13,6 @@ function M.setup()
   for _, home in ipairs({
     vim.env.JAVA_HOME or "",
     "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home",
-    "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home",
   }) do
     if home ~= "" and vim.fn.executable(home .. "/bin/java") == 1 then
       default_sdk = home

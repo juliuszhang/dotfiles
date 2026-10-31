@@ -7,7 +7,17 @@ vim.api.nvim_create_autocmd("FileType", {
   -- 独立事件组；重新执行配置时替换旧规则。
   group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true }),
   -- 这里填写 Neovim 文件类型名，可能与解析器语言名不同，例如 typescriptreact 对应 tsx。
-  pattern = { "java", "lua", "javascript", "javascriptreact", "typescript", "typescriptreact", "json", "mermaid", "markdown" },
+  pattern = {
+    "java",
+    "lua",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "json",
+    "mermaid",
+    "markdown",
+  },
   callback = function(event)
     -- 把当前 buffer 的文件类型映射为 Tree-sitter 语言名。
     local lang = vim.treesitter.language.get_lang(vim.bo[event.buf].filetype)
@@ -26,9 +36,11 @@ vim.api.nvim_create_autocmd("FileType", {
       if indent_ok and indents then
         vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
       end
-      -- 按语法树折叠（zM 全部折叠、za 切换当前、zR 全部展开）；仅作用于当前窗口中的此 buffer。
-      vim.wo[0][0].foldmethod = "expr"
-      vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      -- 按语法树折叠（zM 全部折叠、za 切换当前、zR 全部展开）；只设置正在显示此 buffer 的窗口。
+      for _, win in ipairs(vim.fn.win_findbuf(event.buf)) do
+        vim.wo[win][0].foldmethod = "expr"
+        vim.wo[win][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+      end
     end
     -- 缺少查询或启动失败时，停止 Tree-sitter，并回退到该文件类型的传统语法高亮。
     if not started then
@@ -42,7 +54,20 @@ vim.api.nvim_create_autocmd("FileType", {
 -- 定义手动命令 :TSInstallConfigured，把下载/编译工作与日常启动分开。
 vim.api.nvim_create_user_command("TSInstallConfigured", function()
   -- 这里填写解析器名；tsx 用于 TSX，markdown_inline 处理 Markdown 内联语法。
-  require("nvim-treesitter").install({ "java", "lua", "javascript", "typescript", "tsx", "json", "mermaid", "markdown", "markdown_inline", "vim", "regex", "bash" })
+  require("nvim-treesitter").install({
+    "java",
+    "lua",
+    "javascript",
+    "typescript",
+    "tsx",
+    "json",
+    "mermaid",
+    "markdown",
+    "markdown_inline",
+    "vim",
+    "regex",
+    "bash",
+  })
 end, { desc = "Install parsers used by this configuration" })
 
 -- 折叠按窗口选择来源：IntelliJ 已连接时使用服务范围，否则保留 Tree-sitter。

@@ -6,12 +6,11 @@
 require("nvim-surround").setup({})
 -- 启用括号、引号等字符的自动配对。
 require("nvim-autopairs").setup({ map_cr = false })
--- 回车优先确认原生补全；无候选菜单时保留括号内自动换行/缩进。
+-- 回车仅在已用 Ctrl+n/Ctrl+p 选中候选时确认补全；否则照常换行，并保留括号内自动换行/缩进。
 -- IntelliJ 的默认回车不调用 autopairs，因此统一在此处理，避免局部映射遮蔽。
 vim.keymap.set("i", "<CR>", function()
-  if vim.fn.pumvisible() ~= 0 then
-    local keys = vim.fn.complete_info({ "selected" }).selected == -1 and "<C-n><C-y>" or "<C-y>"
-    return vim.api.nvim_replace_termcodes(keys, true, false, true)
+  if vim.fn.pumvisible() ~= 0 and vim.fn.complete_info({ "selected" }).selected ~= -1 then
+    return vim.api.nvim_replace_termcodes("<C-y>", true, false, true)
   end
   return require("nvim-autopairs").autopairs_cr()
 end, { expr = true, replace_keycodes = false, desc = "Accept native completion or insert paired newline" })
@@ -29,11 +28,18 @@ require("telescope").setup({
 -- 优先使用整个 Git 仓库；无 Git 时采用最近的构建标记或文件所在目录。
 local function search_root()
   local file = vim.api.nvim_buf_get_name(0)
-  if vim.bo.buftype ~= "" or file == "" then return vim.fn.getcwd() end
+  if vim.bo.buftype ~= "" or file == "" then
+    return vim.fn.getcwd()
+  end
   local config = vim.fs.normalize(vim.fn.stdpath("config"))
-  if vim.startswith(vim.fs.normalize(file), config .. "/") then return config end
+  if vim.startswith(vim.fs.normalize(file), config .. "/") then
+    return config
+  end
   return vim.fs.root(0, { ".git" })
-    or vim.fs.root(0, { "pom.xml", "build.gradle", "build.gradle.kts", "package.json", "pyproject.toml", "Cargo.toml", "go.mod" })
+    or vim.fs.root(
+      0,
+      { "pom.xml", "build.gradle", "build.gradle.kts", "package.json", "pyproject.toml", "Cargo.toml", "go.mod" }
+    )
     or vim.fs.dirname(file)
 end
 
@@ -97,6 +103,10 @@ local function flash_line(forward)
   })
 end
 -- 空格 空格 j：选择下方某一行并跳转。
-vim.keymap.set({ "n", "x", "o" }, "<leader><leader>j", function() flash_line(true) end, { desc = "Flash: line below" })
+vim.keymap.set({ "n", "x", "o" }, "<leader><leader>j", function()
+  flash_line(true)
+end, { desc = "Flash: line below" })
 -- 空格 空格 k：选择上方某一行并跳转。
-vim.keymap.set({ "n", "x", "o" }, "<leader><leader>k", function() flash_line(false) end, { desc = "Flash: line above" })
+vim.keymap.set({ "n", "x", "o" }, "<leader><leader>k", function()
+  flash_line(false)
+end, { desc = "Flash: line above" })

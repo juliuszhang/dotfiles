@@ -59,7 +59,9 @@ local function close_file_tab(buf)
   -- 未传入编号时使用当前 buffer。
   buf = buf or vim.api.nvim_get_current_buf()
   -- buffer 已不存在时直接返回。
-  if not vim.api.nvim_buf_is_valid(buf) then return end
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
   -- 仅处理普通文件，排除终端、帮助、文件树等特殊 buffer。
   if vim.bo[buf].buftype ~= "" then
     vim.notify("请在代码窗口中关闭文件标签。", vim.log.levels.INFO)
@@ -72,8 +74,10 @@ local function close_file_tab(buf)
   end
   -- 替代文件必须有效、在 buffer 列表中、属于普通文件，且不是正在关闭的文件。
   local function usable(candidate)
-    return candidate ~= buf and vim.api.nvim_buf_is_valid(candidate)
-      and vim.bo[candidate].buflisted and vim.bo[candidate].buftype == ""
+    return candidate ~= buf
+      and vim.api.nvim_buf_is_valid(candidate)
+      and vim.bo[candidate].buflisted
+      and vim.bo[candidate].buftype == ""
   end
   -- 优先选择 alternate buffer（#，通常是上一个访问的文件）。
   local replacement = vim.fn.bufnr("#")
@@ -81,7 +85,10 @@ local function close_file_tab(buf)
   if not usable(replacement) then
     replacement = nil
     for _, candidate in ipairs(vim.api.nvim_list_bufs()) do
-      if usable(candidate) then replacement = candidate; break end
+      if usable(candidate) then
+        replacement = candidate
+        break
+      end
     end
   end
   -- 遍历各窗口，把正在显示待关闭文件的窗口换成替代 buffer。
@@ -120,7 +127,9 @@ vim.keymap.set("n", "<S-h>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous 
 -- 普通模式 L：切到下一个文件标签。
 vim.keymap.set("n", "<S-l>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next file tab" })
 -- 空格 w：关闭当前文件标签，保留窗口布局。
-vim.keymap.set("n", "<leader>w", function() close_file_tab() end, { desc = "Close file tab, keep window layout" })
+vim.keymap.set("n", "<leader>w", function()
+  close_file_tab()
+end, { desc = "Close file tab, keep window layout" })
 -- 空格 Shift+w：关闭其他普通文件标签；未保存的文件仍由保护逻辑保留。
 vim.keymap.set("n", "<leader>W", function()
   -- 记录当前文件，用于遍历时排除它。
@@ -132,8 +141,7 @@ vim.keymap.set("n", "<leader>W", function()
   end
   -- 遍历所有 buffer，只对当前文件之外的普通、已列出文件尝试关闭。
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if buf ~= current and vim.api.nvim_buf_is_valid(buf)
-      and vim.bo[buf].buflisted and vim.bo[buf].buftype == "" then
+    if buf ~= current and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted and vim.bo[buf].buftype == "" then
       close_file_tab(buf)
     end
   end
