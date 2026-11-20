@@ -3,9 +3,13 @@
 # PATH 自动去重
 typeset -U path
 
+# Homebrew 命令：GUI 程序、定时任务等未继承登录环境的 zsh -c 也能找到 mvn 等工具。
+# 登录 shell 中 ~/.zprofile 的 brew shellenv 还会设置 HOMEBREW_PREFIX、MANPATH 等。
+path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
+
 # 默认 JDK 25：避免脚本中 Homebrew 的 mvn 回退到它依赖的最新版 openjdk。
-# 已有 JAVA_HOME（如父进程用 jdk25 等切换过）时保持不变。
-if [[ -z "$JAVA_HOME" && -x /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java ]]; then
+# 继承的 JAVA_HOME 有效时（如父进程用 jdk25 等切换过）保持不变；为空或失效时改用默认值。
+if [[ ! -x "$JAVA_HOME/bin/java" && -x /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java ]]; then
   export JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
 fi
-[[ -z "$JAVA_HOME" ]] || path=("$JAVA_HOME/bin" $path)
+[[ ! -x "$JAVA_HOME/bin/java" ]] || path=("$JAVA_HOME/bin" $path)

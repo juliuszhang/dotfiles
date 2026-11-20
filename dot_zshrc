@@ -37,7 +37,12 @@ export HOMEBREW_NO_PATH_SHADOW_CHECK=1
 
 source <(fzf --zsh)
 
-alias gco="git branch --format='%(refname:short)' | fzf | xargs git checkout"
+# 用 fzf 选择本地分支并切换；取消选择时不执行任何操作
+gco() {
+  local branch
+  branch=$(git branch --format='%(refname:short)' | fzf) || return
+  git switch -- "$branch"
+}
 
 # 语法高亮需最后加载，才能包装之前定义的所有 widget
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

@@ -37,9 +37,12 @@ vim.api.nvim_create_autocmd("FileType", {
         vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
       end
       -- 按语法树折叠（zM 全部折叠、za 切换当前、zR 全部展开）；只设置正在显示此 buffer 的窗口。
+      -- diff 窗口保留按变更块折叠（foldmethod=diff）。
       for _, win in ipairs(vim.fn.win_findbuf(event.buf)) do
-        vim.wo[win][0].foldmethod = "expr"
-        vim.wo[win][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        if not vim.wo[win].diff then
+          vim.wo[win][0].foldmethod = "expr"
+          vim.wo[win][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
+        end
       end
     end
     -- 缺少查询或启动失败时，停止 Tree-sitter，并回退到该文件类型的传统语法高亮。
@@ -72,10 +75,11 @@ end, { desc = "Install parsers used by this configuration" })
 
 -- 折叠按窗口选择来源：IntelliJ 已连接时使用服务范围，否则保留 Tree-sitter。
 -- 上游 on_attach 只设置当时的当前窗口；切换文件/分屏，以及后台连接时需同步其余窗口。
+-- diff 窗口不参与，保留按变更块折叠。
 local function refresh_window_folds()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local buf = vim.api.nvim_win_get_buf(win)
-    if vim.bo[buf].buftype == "" then
+    if vim.bo[buf].buftype == "" and not vim.wo[win].diff then
       local clients = vim.lsp.get_clients({ bufnr = buf, name = "intellij", method = "textDocument/foldingRange" })
       if #clients > 0 then
         if vim.wo[win].foldexpr ~= "v:lua.vim.lsp.foldexpr()" then

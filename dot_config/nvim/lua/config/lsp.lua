@@ -83,16 +83,27 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 -- 在 nvim-lspconfig 的 Lua 默认配置上保留项目识别和 Neovim 专用设置。
 -- 启动命令和文件类型使用上游默认值；注册配置与真正启用服务器是两个步骤。
+
+-- 返回路径所属的 Neovim 配置目录，不属于时返回 nil。
+-- 包括生效的配置目录（通常为 ~/.config/nvim），以及 chezmoi 源目录中的 dot_config/nvim（chezmoi edit 打开的是它）。
+local function nvim_config_root(path)
+  path = vim.fs.normalize(path)
+  local config_dir = vim.fs.normalize(vim.fn.stdpath("config"))
+  if path == config_dir or vim.startswith(path, config_dir .. "/") then
+    return config_dir
+  end
+  return path:match("^(.*/dot_config/nvim)/") or path:match("^(.*/dot_config/nvim)$")
+end
+
 vim.lsp.config("lua_ls", {
   -- 确定项目根目录，通过 on_dir(目录) 告诉 LSP 应在哪个项目启动。
   root_dir = function(bufnr, on_dir)
     -- 取得当前文件的完整路径并规范化。
     local file = vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))
-    -- 取得 Neovim 配置目录，通常为 ~/.config/nvim。
-    local config_dir = vim.fs.normalize(vim.fn.stdpath("config"))
     -- 编辑自己的 Neovim 配置时，把整个配置目录当成一个 Lua 项目。
-    if vim.startswith(file, config_dir .. "/") then
-      on_dir(config_dir)
+    local config_root = nvim_config_root(file)
+    if config_root then
+      on_dir(config_root)
     else
       -- 其他 Lua 文件向上寻找项目标记；找不到时退回文件所在目录。
       on_dir(vim.fs.root(bufnr, { ".luarc.json", ".luarc.jsonc", ".git" }) or vim.fs.dirname(file))
@@ -108,7 +119,7 @@ vim.lsp.config("lua_ls", {
   },
   -- 服务器初始化时，仅为 Neovim 自身配置项目补充专用 Lua 设置。
   on_init = function(client)
-    if vim.fs.normalize(client.root_dir or "") == vim.fs.normalize(vim.fn.stdpath("config")) then
+    if client.root_dir and nvim_config_root(client.root_dir) then
       -- Neovim 的 Lua 运行环境按 LuaJIT 分析；require 按 Neovim 的 lua/ 目录规则严格解析，
       -- 避免 require("telescope") 被同名文件（如主题的 integrations/telescope.lua）误匹配。
       client.config.settings.Lua.runtime = {
