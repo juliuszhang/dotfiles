@@ -3,6 +3,9 @@
 -- 阅读顺序建议沿用下方顺序；Java 服务设置见 config/java.lua，缩进见 ftplugin/java.lua。
 -- 本配置面向 Neovim 0.12+，插件版本由 nvim-pack-lock.json 记录。
 
+-- ⓪ 启用 Lua 模块字节码缓存，加快启动；需在其他 require 之前调用。
+vim.loader.enable()
+
 -- ① 基础设置：剪贴板、行号、Leader、缩进、鼠标等；先确定 Leader，再定义其他快捷键。
 require("config.options")
 -- ② 插件管理：用内置 vim.pack.add() 加载插件，后续模块才能调用各插件的 setup()。

@@ -1,4 +1,4 @@
-export PATH="$HOME/.local/bin:$PATH"
+[[ ! -d "$HOME/.local/bin" ]] || path=("$HOME/.local/bin" $path)
 
 # 用 nvim 编辑命令行：Ctrl-x Ctrl-e
 export EDITOR=nvim VISUAL=nvim
@@ -9,21 +9,28 @@ bindkey '^X^E' edit-command-line
 # 空格时展开历史引用（!!、!$、!-2 等）
 bindkey ' ' magic-space
 
-# zsh 插件（Homebrew 安装）：自动提示 + 语法高亮（高亮需放在最后）
+# 历史记录：保留更多条目，去掉重复命令，多个终端实时共享
+HISTSIZE=50000
+SAVEHIST=50000
+setopt hist_ignore_all_dups share_history
+
+# 补全系统；需在 fzf 和插件之前初始化
+autoload -Uz compinit && compinit
+
+# zsh 插件（Homebrew 安装）：自动提示；语法高亮在文件末尾加载
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Starship 提示符
 eval "$(starship init zsh)"
 
-alias ls='eza --icons'
+alias ls='eza --icons=auto'
 
 alias cat='bat'
 
 # 本机密钥与私有设置（不纳入 chezmoi / Git）
 [[ ! -r "$HOME/.config/zsh/local.zsh" ]] || source "$HOME/.config/zsh/local.zsh"
 
-# Java：用 jdk25 / jdk27 切换，jdklts 返回默认 LTS。
+# Java：默认 JDK 在 ~/.zshenv 设置；用 jdk25 切换，jdklts 返回默认 LTS。
 source "$HOME/.config/zsh/java.zsh"
 
 export HOMEBREW_NO_PATH_SHADOW_CHECK=1
@@ -31,3 +38,6 @@ export HOMEBREW_NO_PATH_SHADOW_CHECK=1
 source <(fzf --zsh)
 
 alias gco="git branch --format='%(refname:short)' | fzf | xargs git checkout"
+
+# 语法高亮需最后加载，才能包装之前定义的所有 widget
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

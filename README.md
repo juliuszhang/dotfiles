@@ -5,9 +5,9 @@
 | 配置 | 应用位置 |
 | --- | --- |
 | Neovim（含插件锁定文件和 Lua 模块） | `~/.config/nvim/` |
-| Zsh | `~/.zshrc`、`~/.zprofile`、`~/.config/zsh/java.zsh` |
+| Zsh | `~/.zshenv`、`~/.zshrc`、`~/.zprofile`、`~/.config/zsh/java.zsh` |
 | Starship 提示符 | `~/.config/starship.toml` |
-| Ghostty | `~/Library/Application Support/com.mitchellh.ghostty/config.ghostty` |
+| Ghostty（仅在已安装 `/Applications/Ghostty.app` 时应用） | `~/Library/Application Support/com.mitchellh.ghostty/config.ghostty` |
 
 Neovim 插件缓存、shell 历史、日志、备份和本机密钥不在管理范围内。Neovim 的快捷键和语言服务安装说明见 [Neovim README](dot_config/nvim/README.md)。
 
@@ -36,7 +36,7 @@ chezmoi diff
 chezmoi apply
 ```
 
-在当前机器上，chezmoi 源目录是 `~/Workspace/dotfiles`，已写入本机的 `~/.config/chezmoi/chezmoi.toml`；新机器默认使用 chezmoi 自己的源目录。
+源目录可用 `chezmoi source-path` 查看，默认是 `~/.local/share/chezmoi`；也可在本机的 `~/.config/chezmoi/chezmoi.toml` 中用 `sourceDir` 自定义（例如 `~/Workspace/dotfiles`）。
 
 ## 本机敏感配置
 

@@ -23,3 +23,9 @@ examples/**
 Library
 Library/**
 {{ end }}
+
+# Skip Ghostty settings on machines without Ghostty installed.
+{{ if not (stat "/Applications/Ghostty.app") }}
+Library/Application Support/com.mitchellh.ghostty
+Library/Application Support/com.mitchellh.ghostty/**
+{{ end }}

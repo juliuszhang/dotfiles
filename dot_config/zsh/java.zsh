@@ -34,7 +34,4 @@ _use_jdk() {
 alias jdk25='_use_jdk 25'
 alias jdklts='_use_jdk 25'
 
-# 新终端默认使用最新 LTS（25）；未安装时跳过，避免 JAVA_HOME 指向不存在的目录。
-if [[ -x "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home/bin/java" ]]; then
-  _use_jdk 25
-fi
+# 默认 JDK（最新 LTS 25）在 ~/.zshenv 中设置，脚本和 zsh -c 也会使用。

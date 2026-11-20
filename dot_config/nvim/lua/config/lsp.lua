@@ -12,6 +12,12 @@ vim.diagnostic.config({
   severity_sort = true,
   -- 诊断浮窗使用圆角边框，并展示诊断来源。
   float = { border = "rounded", source = true },
+  -- 内置 [d / ]d（及 [D / ]D）跳转诊断后，打开说明浮窗。
+  jump = {
+    on_jump = function(_, bufnr)
+      vim.diagnostic.open_float({ bufnr = bufnr, scope = "cursor", focus = false })
+    end,
+  },
 })
 -- 空格 Shift+d：浮窗查看当前行诊断。
 vim.keymap.set("n", "<leader>D", function()
@@ -43,14 +49,6 @@ end, { desc = "Format current buffer" })
 vim.keymap.set("n", "<leader>fd", function()
   require("telescope.builtin").diagnostics()
 end, { desc = "Search diagnostics" })
--- [d：跳到上一条诊断，并打开说明浮窗。
-vim.keymap.set("n", "[d", function()
-  vim.diagnostic.jump({ count = -1, float = true })
-end, { desc = "Previous diagnostic" })
--- ]d：跳到下一条诊断，并打开说明浮窗。
-vim.keymap.set("n", "]d", function()
-  vim.diagnostic.jump({ count = 1, float = true })
-end, { desc = "Next diagnostic" })
 
 -- 初始化外部工具管理器，可用 :Mason 打开界面；此处不自动安装服务器。
 require("mason").setup({})

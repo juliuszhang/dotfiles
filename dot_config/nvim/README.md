@@ -7,8 +7,8 @@
 
 - Neovim 0.12+、Git。
 - `ripgrep` 用于文件和全文搜索。
-- 本机 JDK 使用 Homebrew 安装，通过 zsh 的 `jdk25` / `jdk27` alias 切换；`jdklts` 切回 JDK 25 LTS。
-- 默认使用 JDK 25；Maven 使用 `JAVA_HOME` 指定的 JDK，`mvn -version` 可检查当前版本。
+- 本机 JDK 使用 Homebrew 安装，通过 zsh 的 `jdk25` alias 切换；`jdklts` 切回 JDK 25 LTS。
+- 默认使用 JDK 25（在 `~/.zshenv` 设置，脚本和 `zsh -c` 中同样生效）；Maven 使用 `JAVA_HOME` 指定的 JDK，`mvn -version` 可检查当前版本。
 - IntelliJ 语言服务自动下载官方服务器包，使用包内 JBR。项目分析优先使用项目指定 JDK；未指定时采用有效的 `JAVA_HOME`，否则尝试 Homebrew JDK 25 / 21。
 - Maven 项目需要可用的 `mvn`（可通过 `brew install maven` 安装）或项目提供的 Maven Wrapper；只有服务器自带 JBR 并不足以完成 Maven 导入。用 `mvn -version` 检查其运行 JDK 与项目要求一致。
 - 使用图标时建议选择 Nerd Font 终端字体。
